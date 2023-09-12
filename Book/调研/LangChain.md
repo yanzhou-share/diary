@@ -15,3 +15,5 @@ LangChain创建于2022年10月，是围绕LLMs（大语言模型）建立的一�
 * LLMS
 * 聊天模型
 * 文本嵌入模型
+
+[LangChain](https://github.com/langchain-ai/langchainjs)

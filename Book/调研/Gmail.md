@@ -1,0 +1,4 @@
+# Google auth 2.0 授权获取发送邮件
+1. 授权登录，获取到Gmail的权限https://developers.google.com/gmail/api/auth/scopes?hl=zh-cn
+例如：1、https://www.googleapis.com/auth/gmail.modify 2、https://www.googleapis.com/auth/gmail.addons.current.action.compose
+2. redirect to https://accounts.google.com/o/oauth2/auth/oauthchooseaccount?access_type=offline&approval_prompt=force&client_id=927538837578.apps.googleusercontent.com&redirect_uri=https%3A%2F%2Fzapier.com%2Fdashboard%2Fauth%2Foauth%2Freturn%2FGoogleMailV2API%2F&response_type=code&scope=https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fgmail.compose%20https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fgmail.modify%20email&service=lso&o2v=1&flowName=GeneralOAuthFlow
