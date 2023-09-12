@@ -1,2 +1,2 @@
 # diary
-Daily 
+日常调研与总结
