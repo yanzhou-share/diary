@@ -22,4 +22,6 @@ axios.post('https://api.rss.app/v1/feeds', {"url": url}, { headers })
 .catch(error => {
     console.error(error);
 });
+
+注意！！！！ 有时候创建了feed，不能直接访问rss的链接，需要用API才能获取到，目前是个bug，不是必现
 ```
