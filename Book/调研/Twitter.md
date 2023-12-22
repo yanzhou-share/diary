@@ -109,3 +109,135 @@ The v2 full-archive search endpoint is only available to Projects with Academic 
      node twitter-notification.js
      ```
    - 代码将获取目标用户的最新推文，并通过指定的电子邮件服务发送通知。
+
+```golang
+    package main
+
+    import (
+      "encoding/xml"
+      "fmt"
+      "io/ioutil"
+      "log"
+      "net/http"
+      "net/url"
+      "os"
+      "time"
+    )
+
+    const (
+      APIEndpoint = "https://api.twitter.com/2/tweets/search/recent"
+      AuthToken   = "YOUR_TWITTER_AUTH_TOKEN"
+      Query       = "YOUR_SEARCH_QUERY"
+      MaxResults  = 100
+    )
+
+    type Item struct {
+      Title       string    `xml:"title"`
+      Link        string    `xml:"link"`
+      Description string    `xml:"description"`
+      PubDate     time.Time `xml:"pubDate"`
+    }
+
+    type Channel struct {
+      XMLName     xml.Name `xml:"channel"`
+      Title       string   `xml:"title"`
+      Link        string   `xml:"link"`
+      Description string   `xml:"description"`
+      Items       []Item   `xml:"item"`
+    }
+
+    type RSS struct {
+      XMLName xml.Name `xml:"rss"`
+      Version string   `xml:"version,attr"`
+      Channel Channel  `xml:"channel"`
+    }
+
+    type Tweet struct {
+      ID        string    `json:"id"`
+      Text      string    `json:"text"`
+      CreatedAt time.Time `json:"created_at"`
+      User      struct {
+        Name     string `json:"name"`
+        Username string `json:"username"`
+      } `json:"user"`
+    }
+
+    type TweetsResponse struct {
+      Data []Tweet `json:"data"`
+    }
+
+    func main() {
+      // 设置请求参数
+      queryParams := url.Values{}
+      queryParams.Set("query", Query)
+      queryParams.Set("max_results", fmt.Sprintf("%d", MaxResults))
+      queryParams.Set("expansions", "author_id")//如果想获取用户的user.fields必须添加此参数，否则获取不到数据
+
+      // 创建请求
+      req, err := http.NewRequest("GET", APIEndpoint, nil)
+      if err != nil {
+        log.Fatal("创建请求失败：", err)
+      }
+
+      // 设置请求头部
+      req.Header.Set("Authorization", "Bearer "+AuthToken)
+      req.Header.Set("Content-Type", "application/json")
+      req.URL.RawQuery = queryParams.Encode()
+
+      // 发送请求
+      client := &http.Client{}
+      resp, err := client.Do(req)
+      if err != nil {
+        log.Fatal("发送请求失败：", err)
+      }
+      defer resp.Body.Close()
+
+      // 读取响应体
+      body, err := ioutil.ReadAll(resp.Body)
+      if err != nil {
+        log.Fatal("读取响应体失败：", err)
+      }
+
+      // 解析JSON响应
+      var tweetsData TweetsResponse
+      err = json.Unmarshal(body, &tweetsData)
+      if err != nil {
+        log.Fatal("解析JSON失败：", err)
+      }
+
+      // 构建RSS对象
+      channel := Channel{
+        Title:       "Twitter Search Results"
+        Link:        "https://twitter.com/search?q=" + url.QueryEscape(Query),
+        Description: "Search results for: " + Query,
+      }
+
+      for _, tweet := range tweetsData.Data {
+        item := Item{
+          Title:       tweet.User.Name + " (@" + tweet.User.Username + ")",
+          Link:        "https://twitter.com/" + tweet.User.Username + "/status/" + tweet.ID,
+          Description: tweet.Text,
+          PubDate:     tweet.CreatedAt,
+        }
+        channel.Items = append(channel.Items, item)
+      }
+
+      rss := RSS{
+        Version: "2.0",
+        Channel: channel,
+      }
+
+      // 将结果写入XML文件
+      xmlData, err := xml.MarshalIndent(rss, "", "  ")
+      if err != nil {
+        log.Fatal("生成XML数据失败：", err)
+      }
+
+      err = ioutil.WriteFile("tweets.xml", xmlData, 0644)
+      if err != nil {
+        log.Fatal("写入XML文件失败：", err)
+      }
+
+      fmt.Println("结果已写入tweets.xml文件")
+    }
+```
