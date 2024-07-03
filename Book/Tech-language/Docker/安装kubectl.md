@@ -6,10 +6,10 @@ http://www.hzhcontrols.com/new-1959254.html
 
 2、kubectl version --client
 
-3、mkdir .kube
+3、将kubeConfig 写到本地文件  默认路径C:\Users\Administrator\.kube\config
 
-4、cd .kube
+4、kubectl cluster-info
 
-5、将kubeConfig 写到本地文件
+如果加载自定义的config文件 
 
-6、kubectl cluster-info
+kubectl --kubeconfig /path/to/your/custom-kubeconfig get pods
